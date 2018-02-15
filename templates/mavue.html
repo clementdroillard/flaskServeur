@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel=”stylesheet” href=”https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css”>
+  </head>
+  <body>
+    <h2>Choisir l'adresse ip du client dont vous voulez afficher le graphe</h2>
+    <center><select class="selectpicker" data-style="btn-info" id="listeIP" onChange="fonctionGraphe();">
+      <option></option>
+      {% for ligne in ip %}
+        <option>{{ligne|safe}}</option>
+      {% endfor %}
+    </select></center>
+  <canvas id="line-chart" width="10" height="10"></canvas>
+  <canvas id="pie-chart" width="10" height="10"></canvas>
+  </body>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script>
+      mesIp = [];
+      mesnombresIp = [];
+      //on récupere les ip et leur nombre
+      {% for ligne in ip %}
+        mesIp.push({{ligne|safe}}+" ")
+      {% endfor %}
+      {% for ligne in countIp %}
+        mesnombresIp.push({{ligne|safe}})
+      {% endfor %}
+
+     //on affiche un donnut des ip en fonction de leur nombre 
+    new Chart(document.getElementById("pie-chart").getContext("2d"), {
+      type: 'pie',
+      data: {
+        labels: mesIp,
+        datasets: [{
+          label: "Utilisation de l'application pas adresse ip",
+          backgroundColor: ["#FFFF00","#FF0000","#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#000000","#FF8000","#848484"],
+          data: mesnombresIp
+        }]
+      },
+      options: {
+        title: {
+          display: true,
+          text: "Utilisation de l'application pas adresse ip"
+        }
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      },
+    });
+    chart.canvas.parentNode.style.height = '200px';
+
+      //fonction déclancher lors du changement de selection d'ip
+      function fonctionGraphe()
+      {
+        var monIp = document.getElementById("listeIP").value;
+        var mesOs = [];
+        var mesCpu = [];
+        var mesDates = [];
+        var maLigne = [];
+        //on sélectionne unique les données de l'ip sélectionné
+        {% for ligne in data %}
+          jsonString = {{ligne|safe}}
+          maLigne = JSON.parse(jsonString);
+          if(monIp == "'"+maLigne.ip+"'")
+          {
+            mesOs.push(maLigne.os);
+            mesCpu.push(maLigne.cpu);
+            mesDates.push(maLigne.date);
+          }
+        {% endfor %}
+        //on affiche le graphique du cpu de cette adresse ip en fonction de la date
+        new Chart(document.getElementById("line-chart").getContext("2d"), {
+          type: 'line',
+          data: {
+            labels: mesDates,
+            datasets: [{ 
+                data: mesCpu,
+                label: monIp,
+                borderColor: "#3e95cd",
+                fill: false
+              }
+            ]
+          },
+          options: {
+            title: {
+              display: true,
+              text: 'Utilisation cpu par date',
+              responsive: true,
+              maintainAspectRatio: false
+            }
+          }
+        });
+      }
+
+
+
+    </script>
+  </body>
+</html>
